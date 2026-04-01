@@ -1,96 +1,95 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bot, User, Send } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { Sparkles, Edit3 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 function Chatbot() {
-  const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hello! I am your Care Companion. How are you feeling today? 🌼' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [seed, setSeed] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState('');
+  const [error, setError] = useState('');
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const sendMessage = async (e) => {
+  const handleGenerate = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!seed.trim()) return;
 
-    const userMsg = { sender: 'user', text: input };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsTyping(true);
+    setLoading(true);
+    setResult('');
+    setError('');
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text })
+        body: JSON.stringify({ message: seed })
       });
       const data = await res.json();
       
-      setIsTyping(false);
-      setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+      if (data.reply) {
+        setResult(data.reply);
+      } else {
+        setError('Received an empty response from Cohere API.');
+      }
     } catch (err) {
       console.error(err);
-      setIsTyping(false);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I am having trouble connecting right now.' }]);
+      setError('Failed to contact the backend API. Make sure the Node server is running.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="chat-container">
-      <div className="chat-messages">
-        <AnimatePresence>
-        {messages.map((msg, idx) => (
-          <motion.div 
-            key={idx} 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`chat-bubble-wrapper ${msg.sender}`}
-          >
-             <div className={`chat-avatar ${msg.sender === 'user' ? 'user-avatar' : ''}`}>
-                {msg.sender === 'bot' ? <Bot size={24} /> : <User size={24} />}
-             </div>
-             <div className={`bubble ${msg.sender}`}>
-                {msg.text}
-             </div>
-          </motion.div>
-        ))}
-        </AnimatePresence>
-
-        {isTyping && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="chat-bubble-wrapper bot">
-             <div className="chat-avatar"><Bot size={24} /></div>
-             <div className="bubble bot" style={{ display: 'flex', gap: '6px', alignItems: 'center', minHeight: '44px' }}>
-                <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 0.8 }} style={{ width: 8, height: 8, background: 'var(--primary)', borderRadius: '50%' }} />
-                <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }} style={{ width: 8, height: 8, background: 'var(--primary)', borderRadius: '50%' }} />
-                <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }} style={{ width: 8, height: 8, background: 'var(--primary)', borderRadius: '50%' }} />
-             </div>
-          </motion.div>
-        )}
-
-        <div ref={messagesEndRef} />
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="card" style={{ maxWidth: '800px', margin: '40px auto', minHeight: '600px', padding: '40px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <Sparkles size={48} color="var(--primary)" style={{ marginBottom: '16px' }} />
+        <h2 className="boldonse-regular" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Paragraph Generator</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Powered by Cohere API command-r7b-12-2024</p>
       </div>
-      
-      <form onSubmit={sendMessage} className="chat-input-area">
-        <input 
-          type="text" 
-          placeholder="Type message..." 
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={isTyping}
-        />
-        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} type="submit" disabled={isTyping} style={{ opacity: isTyping ? 0.5 : 1 }}>
-          <Send size={24} />
+
+      <form onSubmit={handleGenerate} style={{ display: 'flex', gap: '16px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 300px', position: 'relative' }}>
+          <Edit3 size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input 
+            type="text" 
+            className="form-control" 
+            placeholder="Enter a keyword (e.g. Health, Music...)" 
+            value={seed}
+            onChange={(e) => setSeed(e.target.value)}
+            disabled={loading}
+            style={{ fontSize: '1.2rem', padding: '16px 16px 16px 48px', width: '100%' }}
+          />
+        </div>
+        <motion.button 
+          whileHover={{ scale: 1.05 }} 
+          whileTap={{ scale: 0.95 }} 
+          type="submit" 
+          className="btn btn-primary" 
+          disabled={loading || !seed.trim()}
+          style={{ fontSize: '1.2rem', padding: '0 32px', minWidth: '150px' }}
+        >
+          {loading ? 'Generating...' : 'Generate'}
         </motion.button>
       </form>
+
+      {error && (
+        <div style={{ padding: '20px', background: 'rgba(255, 59, 48, 0.1)', color: 'var(--danger)', borderRadius: '12px', marginBottom: '24px' }}>
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ background: 'var(--surface)', padding: '32px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <h3 style={{ marginBottom: '16px', color: 'var(--primary)' }}>Generated Output:</h3>
+          <div style={{ fontSize: '1.15rem', lineHeight: '1.8', color: 'var(--text)', whiteSpace: 'pre-wrap' }}>
+            {result}
+          </div>
+        </motion.div>
+      )}
+      
+      {!result && !loading && !error && (
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '60px', padding: '40px', border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '16px' }}>
+          <p>Your Cohere generation results will appear here in raw paragraph format.</p>
+        </div>
+      )}
     </motion.div>
   );
 }
