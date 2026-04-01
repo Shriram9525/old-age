@@ -1,0 +1,558 @@
+:root {
+  /* Premium Apple-Healthcare Theme Colors */
+  --primary: #0B3C5D;      /* Dark Blue */
+  --secondary: #1D4E89;    /* Deep Blue */
+  --accent: #E6F0FA;       /* Light Blue */
+  --background: #F4F7FB;   /* Extra soft white/blue background */
+  --surface: #FFFFFF;      /* Clean White */
+  
+  --primary: #0B3C5D;
+  --secondary: #1D4E89;
+  --accent: #E6F0FA;
+  --background: #F4F7FB; /* Very soft solid fallback */
+  --surface: #FFFFFF;
+  --text-main: #1C1C1E;
+  --text-muted: #8E8E93;
+  --success: #34C759;
+  --success-bg: #E5F9E9;
+  --danger: #FF3B30;
+  --danger-bg: #FFEBEA;
+  --warning: #FFCC00;
+  --warning-bg: #FFF9E5;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; /* Ultra-Premium Font */
+  background: var(--background);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em; /* Modern tight tracking on headers */
+}
+
+.boldonse-regular {
+  font-family: "Boldonse", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Layout */
+.app-container {
+  min-height: 100vh;
+  padding-top: 100px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+.header h1 {
+  font-size: 3.5rem; /* Noticeably larger, bold branding */
+  color: var(--primary);
+  margin-bottom: 12px;
+  letter-spacing: -0.04em;
+}
+.header p {
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+/* Top Navbar - Glassmorphism */
+.top-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: rgba(11, 60, 93, 0.85); /* Transparent Primary */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #8CACC2;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.05);
+  color: white;
+}
+
+.nav-item.active {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.nav-logout-btn {
+  background: transparent;
+  color: #8CACC2;
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-logout-btn:hover {
+  background: rgba(255,59,48,0.2);
+  color: #FF3B30;
+  border-color: #FF3B30;
+}
+
+/* responsive topnav */
+@media (max-width: 1024px) {
+  .nav-item span, .nav-logout-btn span { display: none; }
+  .top-navbar { padding: 0 20px; }
+  .nav-links { gap: 16px; }
+}
+
+/* Glassmorphism Cards */
+.card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); /* Soft depth */
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.card:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1), 0 0 20px rgba(230, 240, 250, 0.4); /* Glow effect */
+  transform: translateY(-5px); /* Hover Lift */
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.card-title {
+  font-size: 1.6rem;
+  color: var(--primary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Custom Glass & Gradient Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 18px 32px;
+  border-radius: 999px; /* Pill shape */
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif; /* Ensure button inherits font */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  min-height: 56px;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(11, 60, 93, 0.2), inset 0 1px 1px rgba(255,255,255,0.4); /* Deep glow + Inner light reflection */
+}
+
+.btn:hover {
+  box-shadow: 0 8px 25px rgba(11, 60, 93, 0.3), inset 0 1px 1px rgba(255,255,255,0.5);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #28A745);
+  box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3), inset 0 1px 1px rgba(255,255,255,0.4);
+}
+.btn-success:hover { box-shadow: 0 8px 25px rgba(52, 199, 89, 0.4), inset 0 1px 1px rgba(255,255,255,0.5); }
+
+.btn-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  box-shadow: 0 4px 15px rgba(255, 59, 48, 0.1);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  box-shadow: none;
+}
+.btn-outline:hover {
+  background: var(--accent);
+  box-shadow: none;
+}
+.btn-danger:hover { background: #E6352B; box-shadow: 0 8px 16px rgba(255, 59, 48, 0.2); }
+
+/* Alerts */
+.alert-card {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-weight: 600;
+  font-size: 1.3rem;
+  animation: slideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  border-left: 6px solid transparent;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.alert-card.danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-left-color: var(--danger);
+}
+
+.alert-card.warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-left-color: var(--warning);
+}
+
+.alert-card.safe {
+  background: var(--success-bg);
+  color: var(--success);
+  border-left-color: var(--success);
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 600px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: all 0.4s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+.stat-card:hover { 
+  transform: translateY(-5px); 
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 15px rgba(29, 78, 137, 0.15); 
+}
+
+.stat-val {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 8px 0;
+}
+
+/* Chatbot UI - Glassmorphic */
+.chat-container {
+  height: 550px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: transparent;
+}
+
+.chat-bubble-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 85%;
+}
+
+.chat-bubble-wrapper.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-bubble-wrapper.bot {
+  align-self: flex-start;
+}
+
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: white;
+  flex-shrink: 0;
+}
+
+.chat-avatar.user-avatar { background: var(--secondary); }
+
+.bubble {
+  padding: 16px 20px;
+  border-radius: 24px;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.bubble.user {
+  background: linear-gradient(135deg, var(--primary), var(--secondary)); /* Depth gradient */
+  color: white;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 4px 15px rgba(11, 60, 93, 0.2);
+}
+
+.bubble.bot {
+  background: rgba(230, 240, 250, 0.85); /* Glass variant of accent */
+  backdrop-filter: blur(10px);
+  color: var(--primary);
+  border-bottom-left-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.chat-input-area {
+  display: flex;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.4);
+  gap: 16px;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 0 24px;
+  height: 60px;
+  border: 2px solid var(--accent);
+  border-radius: 30px;
+  font-size: 1.2rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.chat-input-area input:focus {
+  border-color: var(--primary);
+}
+
+.chat-input-area button {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.chat-input-area button:hover { transform: scale(1.05); background: var(--secondary); }
+
+/* Meds Cards - Glassmorphism */
+.med-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.med-card:hover { 
+  transform: translateY(-4px); 
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08), 0 0 15px rgba(29, 78, 137, 0.1); 
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.med-card.status-taken { border-color: var(--success); background: var(--success-bg); }
+
+.med-info-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.med-icon-box {
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.med-card.status-taken .med-icon-box { background: rgba(52, 199, 89, 0.2); color: var(--success); }
+
+.med-details h3 { font-size: 1.6rem; color: var(--text-main); margin-bottom: 4px; }
+.med-details p { font-size: 1.2rem; color: var(--text-muted); }
+
+.med-actions {
+  display: flex;
+  gap: 16px;
+}
+
+/* Forms - Premium Soft Inputs */
+.form-control {
+  width: 100%;
+  padding: 18px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08); /* Barely visible border */
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.6); /* Translucent input */
+  backdrop-filter: blur(8px);
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); /* Inner depth */
+  font-family: inherit;
+  color: var(--text-main);
+}
+.form-control::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.form-control:focus { 
+  border-color: rgba(11, 60, 93, 0.4); 
+  background: #FFFFFF;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), 0 0 0 4px rgba(11, 60, 93, 0.1); /* iOS Focus Ring */
+}
+
+/* Hide Custom Cursor Follower on Mobile Touch Devices */
+@media (pointer: coarse) {
+  .cursor-follower {
+    display: none !important;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Check-In Modal Glassmorphism */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.checkin-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+  padding: 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.checkin-icon {
+  background: var(--accent);
+  color: var(--primary);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 32px auto;
+  box-shadow: 0 10px 30px rgba(10, 132, 255, 0.3);
+}
