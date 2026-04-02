@@ -110,6 +110,13 @@ function Login({ setToken }) {
     }
   };
 
+  const toggleHoverToSpeak = () => {
+    const newVal = !hoverToSpeak;
+    setHoverToSpeak(newVal);
+    localStorage.setItem('hoverToSpeak', newVal.toString());
+    window.dispatchEvent(new Event('hoverToSpeakToggle'));
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -117,8 +124,34 @@ function Login({ setToken }) {
       justifyContent: 'center',
       minHeight: '100vh',
       background: 'transparent',
-      padding: '24px'
+      padding: '24px',
+      position: 'relative'
     }}>
+      <button 
+        onClick={toggleHoverToSpeak}
+        title={hoverToSpeak ? "Disable Hover to Speak" : "Enable Hover to Speak"}
+        style={{
+          position: 'absolute',
+          top: '24px',
+          right: '24px',
+          background: hoverToSpeak ? '#ff0000' : '#880000',
+          color: 'white',
+          border: 'none',
+          width: '72px',
+          height: '72px',
+          borderRadius: '50%',
+          cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(255, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s',
+          zIndex: 100
+        }}
+      >
+        {hoverToSpeak ? <Volume2 size={36} /> : <VolumeX size={36} />}
+      </button>
+
       <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '50px 32px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
         <HeartPulse size={80} color="#ff0505ff" style={{ margin: '0 auto 24px auto' }} />
         <h2 style={{ fontSize: '2.5rem', color: 'var(--primary)', marginBottom: '8px' }}>{t("Welcome Back")}</h2>

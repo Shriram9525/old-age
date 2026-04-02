@@ -11,6 +11,7 @@ import Register from './components/Register';
 import BreathingExercise from './components/BreathingExercise';
 import Settings from './components/Settings';
 import CursorFollower from './components/CursorFollower';
+import HoverToVoice from './components/HoverToVoice';
 import Background3D from './components/Background3D';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';

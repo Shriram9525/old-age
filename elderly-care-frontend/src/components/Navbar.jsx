@@ -20,6 +20,7 @@ function Navbar({ setToken }) {
 
   const NavItem = ({ to, icon: Icon, label }) => {
     const isActive = location.pathname === to;
+    
     return (
       <Link to={to} className={`nav-item ${isActive ? 'active' : ''}`}>
         <Icon size={28} strokeWidth={isActive ? 2.5 : 2} />
