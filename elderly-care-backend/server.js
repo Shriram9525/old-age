@@ -1,17 +1,57 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { OpenAI } = require('openai');
+const { CohereClient } = require('cohere-ai');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
-// Initialize OpenAI conditionally
-let openai;
-if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-ijklmnopqrstuvwxijklmnopqrstuvwxijklmnop') {
-  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
+// Initialize Cohere
+const COHERE_API_KEY = process.env.COHERE_API_KEY || 'dummy_key_placeholder';
+const cohere = new CohereClient({ token: COHERE_API_KEY });
+
+let transporter;
+const setupTransporter = async () => {
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: process.env.SMTP_PORT || 465,
+          secure: true, 
+          auth: {
+              user: process.env.SMTP_USER,
+              pass: process.env.SMTP_PASS
+          }
+      });
+      console.log('Nodemailer using real SMTP configuration.');
+  } else {
+      nodemailer.createTestAccount((err, account) => {
+        if (err) {
+          console.error('Failed to create a testing account. ' + err.message);
+          return;
+        }
+        transporter = nodemailer.createTransport({
+          host: account.smtp.host,
+          port: account.smtp.port,
+          secure: account.smtp.secure,
+          auth: { user: account.user, pass: account.pass },
+        });
+        console.log('Nodemailer test service ready (Ethereal Email). Setup SMTP in .env to send real emails.');
+      });
+  }
+};
+setupTransporter();
+
+// Utility for face recognition (Euclidean Distance of 128D vectors)
+const calculateFaceDistance = (desc1, desc2) => {
+  if (!desc1 || !desc2 || desc1.length !== desc2.length) return Infinity;
+  let sum = 0;
+  for (let i = 0; i < desc1.length; i++) {
+    sum += Math.pow(desc1[i] - desc2[i], 2);
+  }
+  return Math.sqrt(sum);
+};
 
 // --- Mock Database ---
 let db = {
@@ -20,6 +60,7 @@ let db = {
     streak: 5,
     lastCheckIn: null,
     isSafe: true,
+    emergencyContacts: []
   },
   medications: [
     { id: 1, name: 'Lisinopril', time: '08:00', takenToday: false, missedToday: false, missedCount: 0 },
@@ -30,17 +71,37 @@ let db = {
     { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], mood: 'Neutral' },
     { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], mood: 'Neutral' }
   ],
-  alerts: []
+  alerts: [],
+  assessments: []
+};
+
+const fireSOS = async (reason) => {
+  db.alerts.push({ type: 'danger', message: `SOS TRIGGERED: ${reason}`, time: new Date() });
+  if (transporter && db.user.emergencyContacts && db.user.emergencyContacts.length > 0) {
+    try {
+       const info = await transporter.sendMail({
+         from: '"CareAssistant Alert" <sos@careassistant.local>',
+         to: db.user.emergencyContacts.join(', '),
+         subject: "🚨 EMERGENCY ALERT: Action Required",
+         text: `An emergency alert has been triggered for your loved one.\nReason: ${reason}\nPlease check on them immediately.`,
+       });
+       console.log('Emergency email sent! Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    } catch (e) {
+       console.error("Failed to send SOS email:", e);
+    }
+  } else {
+    console.log("SOS Fired, but no emergency contacts configured or transporter not ready.");
+  }
 };
 
 // --- AUTH API ---
 app.post('/api/register', (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, faceDescriptor } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Missing fields' });
   const existingUser = db.accounts.find(u => u.email === email);
   if (existingUser) return res.status(400).json({ error: 'User already exists' });
 
-  const newUser = { id: Date.now(), name, email, password };
+  const newUser = { id: Date.now(), name, email, password, faceDescriptor: faceDescriptor || null };
   db.accounts.push(newUser);
   res.json({ token: `mock-token-${newUser.id}`, user: { name, email } });
 });
@@ -50,6 +111,32 @@ app.post('/api/login', (req, res) => {
   const user = db.accounts.find(u => u.email === email && u.password === password);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   res.json({ token: `mock-token-${user.id}`, user: { name: user.name, email: user.email } });
+});
+
+app.post('/api/login-face', (req, res) => {
+  const { faceDescriptor } = req.body;
+  if (!faceDescriptor) return res.status(400).json({ error: 'No face data provided' });
+
+  const MATCH_THRESHOLD = 0.5; // Stricter threshold for better security 
+
+  let bestMatch = null;
+  let lowestDistance = Infinity;
+
+  for (const user of db.accounts) {
+    if (user.faceDescriptor) {
+      const distance = calculateFaceDistance(faceDescriptor, user.faceDescriptor);
+      if (distance < lowestDistance) {
+        lowestDistance = distance;
+        bestMatch = user;
+      }
+    }
+  }
+
+  if (bestMatch && lowestDistance < MATCH_THRESHOLD) {
+    return res.json({ token: `mock-token-${bestMatch.id}`, user: { name: bestMatch.name, email: bestMatch.email } });
+  } else {
+    return res.status(401).json({ error: 'Face not recognized' });
+  }
 });
 
 
@@ -82,9 +169,56 @@ app.post('/api/checkin', (req, res) => {
   } else {
     db.user.streak = 0;
     db.user.isSafe = false;
-    db.alerts.push({ type: 'danger', message: 'User missed daily check-in!', time: new Date() });
+    fireSOS("User missed daily check-in or reported unsafe status!");
     res.status(400).json({ message: 'Emergency Alert Triggered! Caregiver notified.' });
   }
+});
+
+app.get('/api/emergency-contacts', (req, res) => {
+  res.json({ contacts: db.user.emergencyContacts });
+});
+
+app.post('/api/emergency-contacts', (req, res) => {
+  const { emails } = req.body;
+  if (Array.isArray(emails)) {
+    db.user.emergencyContacts = emails;
+    res.json({ success: true, contacts: db.user.emergencyContacts });
+  } else {
+    res.status(400).json({ error: 'Expected an array of emails' });
+  }
+});
+
+app.post('/api/trigger-sos', (req, res) => {
+  fireSOS("User manually triggered SOS button.");
+  res.json({ success: true });
+});
+
+app.post('/api/health-assessment', (req, res) => {
+  const { date, answers, metrics } = req.body;
+  const existingIndex = db.assessments.findIndex(a => a.date === date);
+  const newAssessment = { date, answers, metrics };
+  
+  if (existingIndex >= 0) {
+    db.assessments[existingIndex] = newAssessment;
+  } else {
+    db.assessments.push(newAssessment);
+  }
+
+  // Also extract mood from answers to moodLogs if present
+  if (answers && answers.mood) {
+    let m = answers.mood;
+    if (m === 'Very unhappy') m = 'Sad';
+    if (m === 'Unhappy') m = 'Sad';
+    if (m === 'Very happy') m = 'Happy';
+    const logIdx = db.moodLogs.findIndex(l => l.date === date);
+    if (logIdx >= 0) db.moodLogs[logIdx].mood = m;
+    else db.moodLogs.push({ date, mood: m });
+  }
+
+  if (metrics && !metrics.safe) {
+    fireSOS("Daily Health Check indicated unsafe condition (e.g. severe pain, falls).");
+  }
+  res.json({ success: true, assessments: db.assessments });
 });
 
 app.get('/api/medications', (req, res) => {
@@ -133,55 +267,26 @@ app.post('/api/medications/:id/miss', (req, res) => {
   }
 });
 
-// --- OPENAI API CHATBOT ---
+// --- COHERE API GENERATOR ---
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
+  const seedWord = message.toLowerCase().trim() || 'health';
 
-  let detectedMood = 'Neutral';
-  const msgLower = message.toLowerCase();
-
-  // Basic keyword tracking backup logic
-  if (msgLower.includes('lonely') || msgLower.includes('alone')) { detectedMood = 'Lonely'; db.alerts.push({ type: 'warning', message: 'User reported feeling lonely', time: new Date() }); }
-  else if (msgLower.includes('sad') || msgLower.includes('depress') || msgLower.includes('bad')) { detectedMood = 'Sad'; db.alerts.push({ type: 'warning', message: 'User reported feeling down', time: new Date() }); }
-  else if (msgLower.includes('pain') || msgLower.includes('hurt') || msgLower.includes('sick')) { detectedMood = 'Stressed'; db.alerts.push({ type: 'danger', message: 'User reported feeling pain/sick!', time: new Date() }); }
-  else if (msgLower.includes('happy') || msgLower.includes('good') || msgLower.includes('great')) { detectedMood = 'Happy'; }
-
-  // Save mood log for today
-  const today = new Date().toISOString().split('T')[0];
-  const existingLog = db.moodLogs.find(log => log.date === today);
-  if (existingLog) {
-    existingLog.mood = detectedMood !== 'Neutral' ? detectedMood : existingLog.mood;
-  } else {
-    db.moodLogs.push({ date: today, mood: detectedMood });
-  }
-
-  const fallbackLogic = (mood) => {
-    let reply = "I'm here for you. Tell me more, dear.";
-    if (mood === 'Lonely') reply = "I'm sorry you're feeling lonely. Remember I'm always here to chat! Would you like me to notify your family to call you?";
-    else if (mood === 'Sad') reply = "It's okay to feel sad sometimes. I'm sending virtual hugs. Anything specific on your mind?";
-    else if (mood === 'Stressed') reply = "I'm sorry to hear you're in pain or feeling unwell. Should I alert your caregiver?";
-    else if (mood === 'Happy') reply = "I'm so glad to hear you're feeling good today! Keep up the great spirit.";
-    return { reply, mood };
-  };
-
-  // Open AI integration
   try {
-    if (openai) {
-      const completion = await openai.chat.completions.create({
-        messages: [
-          { role: "system", content: "You are CareAI, a friendly, empathetic companion for elderly adults. Provide very short, warm, and highly supportive responses. Keep sentences simple." },
-          { role: "user", content: message }
-        ],
-        model: "gpt-3.5-turbo",
-      });
-      res.json({ reply: completion.choices[0].message.content, mood: detectedMood });
-    } else {
-      res.json(fallbackLogic(detectedMood));
-    }
+    const prompt = `Give a paragraph of information based on this keyword ${seedWord} and its 5 most similar words. Please synthesize them together smoothly into the paragraph output.`;
+    
+    const response = await cohere.chat({
+      model: 'command-r7b-12-2024',
+      message: prompt,
+      maxTokens: 200
+    });
+    
+    // Strict replacement exactly mimicking the user's Python .replace('. ', '.\n')
+    const parsedText = response.text.trim().split('. ').join('.\n');
+    res.json({ reply: parsedText });
   } catch (error) {
-    console.error('OpenAI Error:', error.message || 'Error occurred');
-    // Fallback automatically if API key quota exceeded
-    res.json(fallbackLogic(detectedMood));
+    console.error('Cohere API Error:', error.message || 'Error occurred');
+    res.json({ reply: "API Error: Unable to fetch generation from Cohere." });
   }
 });
 
@@ -191,11 +296,33 @@ app.get('/api/dashboard', (req, res) => {
   const takenMeds = db.medications.filter(m => m.takenToday).length;
   const missedPercent = totalMeds > 0 ? ((totalMeds - takenMeds) / totalMeds) * 100 : 0;
 
+  // Calculate dynamic average health score from assessments
+  let healthScore = 85; // default fallback
+  if (db.assessments && db.assessments.length > 0) {
+    const total = db.assessments.reduce((sum, a) => sum + (a.metrics ? a.metrics.healthScore : 0), 0);
+    healthScore = Math.round(total / db.assessments.length);
+  }
+
+  // Update streak logic
+  let streak = db.user.streak;
+  if (db.assessments && db.assessments.length > 0) {
+    // Sort descending
+    const sorted = [...db.assessments].sort((a, b) => new Date(b.date) - new Date(a.date));
+    let calculatedStreak = 0;
+    for (const a of sorted) {
+      if (a.metrics && a.metrics.safe) calculatedStreak++;
+      else break;
+    }
+    streak = Math.max(streak, calculatedStreak);
+  }
+
   res.json({
-    streak: db.user.streak,
+    streak: streak,
     medicationAdherence: Math.max(0, 100 - missedPercent),
     moodLogs: db.moodLogs.slice(-7),
-    alerts: db.alerts
+    alerts: db.alerts,
+    assessments: db.assessments,
+    healthScore
   });
 });
 
