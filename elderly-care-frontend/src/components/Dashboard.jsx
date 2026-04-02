@@ -767,7 +767,6 @@ function Dashboard() {
             alignItems: "center",
             gap: "8px",
             padding: "8px 16px",
-            
           }}
         >
           <ClipboardList size={18} />
@@ -1021,7 +1020,6 @@ function Dashboard() {
                   maxHeight: "60vh",
                   overflowY: "auto",
                   paddingRight: "8px",
-                  color: "black"
                 }}
               >
                 {[

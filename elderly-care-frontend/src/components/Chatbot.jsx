@@ -41,7 +41,7 @@ function Chatbot() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="card" style={{ maxWidth: '800px', margin: '40px auto', minHeight: '600px', padding: '40px' }}>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <Sparkles size={48} color="var(--primary)" style={{ marginBottom: '16px' }} />
-        <h2 className="boldonse-regular" style={{ fontSize: '2.5rem', marginBottom: '8px', color: "blue-800" }}>Paragraph Generator</h2>
+        <h2 className="boldonse-regular" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Paragraph Generator</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Powered by Cohere API command-r7b-12-2024</p>
       </div>
 

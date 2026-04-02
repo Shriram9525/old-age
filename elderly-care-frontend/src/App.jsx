@@ -30,15 +30,14 @@ function ProtectedLayout({ token, setToken }) {
 }
 
 function AlertsScreen() {
-  const [emails, setEmails] = useState([]);
-  const [newEmail, setNewEmail] = useState("");
+  const [emails, setEmails] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/emergency-contacts')
+    fetch('/api/emergency-contacts')
       .then(r => r.json())
       .then(d => {
-        if(d.contacts) setEmails(d.contacts);
+        if(d.contacts) setEmails(d.contacts.join(', '));
       })
       .catch(console.error);
   }, []);
@@ -46,8 +45,11 @@ function AlertsScreen() {
   const handleSOS = async () => {
     // Trigger backend SOS to immediately dispatch emails
     try {
-      await fetch('http://localhost:5000/api/trigger-sos', { method: 'POST' });
+      await fetch('/api/trigger-sos', { method: 'POST' });
     } catch (e) { console.error('Failed to trigger backend SOS', e); }
+function AnimatedRoutes({ token, setToken }) {
+  const location = useLocation();
+  const { t } = useLanguage();
 
     // Generate a harsh, synthetic distress buzzer natively via Web Audio API 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -76,33 +78,20 @@ function AlertsScreen() {
       gainNode.gain.setValueAtTime(0, ctx.currentTime);
       oscillator.stop();
       ctx.close();
-      alert("SOS Triggered! Emergency Contacts Notified.");
+      alert("SOS Triggered! Emergency Contacts Notified via Email.");
     }, 4000);
   };
 
-  const addEmail = () => {
-    if (!newEmail || !newEmail.includes('@')) return;
-    if (emails.includes(newEmail)) return;
-    const updated = [...emails, newEmail.trim()];
-    setEmails(updated);
-    setNewEmail("");
-    saveToServer(updated);
-  };
-
-  const removeEmail = (em) => {
-    const updated = emails.filter(e => e !== em);
-    setEmails(updated);
-    saveToServer(updated);
-  };
-
-  const saveToServer = async (emailList) => {
+  const saveContacts = async () => {
     setSaving(true);
+    const emailList = emails.split(',').map(e => e.trim()).filter(e => e);
     try {
-      await fetch('http://localhost:5000/api/emergency-contacts', {
+      await fetch('/api/emergency-contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emails: emailList })
       });
+      alert('Emergency contacts updated successfully!');
     } catch(e) {
       console.error(e);
       alert('Failed to update emergency contacts.');
@@ -139,22 +128,11 @@ function AlertsScreen() {
        <p style={{ color: 'var(--text-muted)', marginTop: '24px', fontSize: '1.1rem' }}>Tap in case of emergency</p>
 
        <div style={{ marginTop: '60px', width: '100%', maxWidth: '400px', background: 'var(--surface)', padding: '24px', borderRadius: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '12px', textAlign: 'left', fontWeight: 'bold', fontSize: '1.2rem', color: "blue-800" }}>Emergency Contacts</label>
-          <p style={{ textAlign: 'left', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Receive instant emails when SOS is triggered.</p>
-          
-          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {emails.map(e => (
-              <li key={e} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--background)', padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                <span style={{ fontWeight: '500' }}>{e}</span>
-                <button onClick={() => removeEmail(e)} style={{ background: 'none', border: 'none', color: '#ff3b30', fontWeight: 'bold', cursor: 'pointer', padding: '4px' }}>X</button>
-              </li>
-            ))}
-            {emails.length === 0 && <li style={{ textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic', padding: '8px 0' }}>No contacts added yet.</li>}
-          </ul>
-
+          <label style={{ display: 'block', marginBottom: '12px', textAlign: 'left', fontWeight: 'bold' }}>Emergency Email Contacts</label>
+          <p style={{ textAlign: 'left', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Receive instant emails when SOS is triggered or a health assessment reports severe danger.</p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <input type="email" className="form-control" placeholder="e.g. doctor@clinic.com" value={newEmail} onChange={e => setNewEmail(e.target.value)} disabled={saving} />
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn btn-primary" onClick={addEmail} disabled={saving} style={{ padding: '0 20px', minWidth: '90px' }}>{saving ? '...' : 'Add'}</motion.button>
+            <input type="text" className="form-control" placeholder="doctor@clinic.com, sister@mail.com" value={emails} onChange={e => setEmails(e.target.value)} disabled={saving} />
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn btn-primary" onClick={saveContacts} disabled={saving} style={{ padding: '0 20px', minWidth: '100px' }}>{saving ? '...' : 'Save'}</motion.button>
           </div>
        </div>
     </motion.div>
@@ -163,7 +141,6 @@ function AlertsScreen() {
 
 function AnimatedRoutes({ token, setToken }) {
   const location = useLocation();
-  const { t } = useLanguage();
 
   return (
     <AnimatePresence mode="wait">
@@ -187,6 +164,34 @@ function AnimatedRoutes({ token, setToken }) {
           <Route path="/alerts" element={<AlertsScreen />} />
           <Route path="/breathe" element={<BreathingExercise />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/alerts" element={
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '600px', textAlign: 'center' }}>
+               <h2 className="card-title" style={{ justifyContent: 'center' }}><AlertTriangle size={36}/> {t('Active Alerts')}</h2>
+               <p style={{color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '60px'}}>{t('No emergency alerts right now. You are safe.')}</p>
+               
+               <motion.button 
+                 whileHover={{ scale: 1.05, boxShadow: '0 15px 40px rgba(255, 59, 48, 0.6)' }} 
+                 whileTap={{ scale: 0.95 }} 
+                 className="btn btn-danger" 
+                 style={{ 
+                   width: '220px', 
+                   height: '220px', 
+                   borderRadius: '50%', 
+                   fontSize: '3rem', 
+                   fontWeight: '800', 
+                   boxShadow: '0 10px 30px rgba(255, 59, 48, 0.4)',
+                   display: 'flex',
+                   flexDirection: 'column',
+                   alignItems: 'center',
+                   justifyContent: 'center'
+                 }}
+                 onClick={handleSOS}
+               >
+                 {t('SOS')}
+               </motion.button>
+               <p style={{ color: 'var(--text-muted)', marginTop: '24px', fontSize: '1.1rem' }}>{t('Tap in case of emergency')}</p>
+            </motion.div>
+          } />
         </Route>
       </Routes>
     </AnimatePresence>
@@ -201,7 +206,6 @@ function App() {
       <BrowserRouter>
         <Background3D isAuth={!!token} />
         <CursorFollower />
-        <HoverToVoice />
         <AnimatedRoutes token={token} setToken={setToken} />
       </BrowserRouter>
     </LanguageProvider>

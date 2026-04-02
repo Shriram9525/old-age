@@ -13,35 +13,19 @@ const COHERE_API_KEY = process.env.COHERE_API_KEY || 'dummy_key_placeholder';
 const cohere = new CohereClient({ token: COHERE_API_KEY });
 
 let transporter;
-const setupTransporter = async () => {
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-      transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
-          port: process.env.SMTP_PORT || 465,
-          secure: true, 
-          auth: {
-              user: process.env.SMTP_USER,
-              pass: process.env.SMTP_PASS
-          }
-      });
-      console.log('Nodemailer using real SMTP configuration.');
-  } else {
-      nodemailer.createTestAccount((err, account) => {
-        if (err) {
-          console.error('Failed to create a testing account. ' + err.message);
-          return;
-        }
-        transporter = nodemailer.createTransport({
-          host: account.smtp.host,
-          port: account.smtp.port,
-          secure: account.smtp.secure,
-          auth: { user: account.user, pass: account.pass },
-        });
-        console.log('Nodemailer test service ready (Ethereal Email). Setup SMTP in .env to send real emails.');
-      });
+nodemailer.createTestAccount((err, account) => {
+  if (err) {
+    console.error('Failed to create a testing account. ' + err.message);
+    return;
   }
-};
-setupTransporter();
+  transporter = nodemailer.createTransport({
+    host: account.smtp.host,
+    port: account.smtp.port,
+    secure: account.smtp.secure,
+    auth: { user: account.user, pass: account.pass },
+  });
+  console.log('Nodemailer test service ready (Ethereal Email).');
+});
 
 // Utility for face recognition (Euclidean Distance of 128D vectors)
 const calculateFaceDistance = (desc1, desc2) => {

@@ -3074,7 +3074,7 @@ const Games = () => {
                 textAlign: "center",
               }}
             >
-              <p style={{ margin: 0, fontSize: "1rem", color: "white" }}>
+              <p style={{ margin: 0, fontSize: "0.9rem" }}>
                 💡 "Our system is not just a game platform, it is an adaptive
                 cognitive health analyzer designed inclusively for every elderly
                 individual, regardless of their physical or sensory
@@ -3183,7 +3183,7 @@ const Games = () => {
             style={{
               padding: "10px 20px",
               marginBottom: "20px",
-              backgroundColor: "black",
+              backgroundColor: "#f0f0f0",
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",

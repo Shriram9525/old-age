@@ -3,15 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import {
-  ActivitySquare,
-  CalendarHeart,
-  MessageCircleHeart,
-  BrainCircuit,
-  AlertTriangle,
-  LogOut,
-  HeartPulse,
-  Wind,
-  Settings as SettingsIcon
+  ActivitySquare, CalendarHeart, MessageCircleHeart,
+  BrainCircuit, AlertTriangle, LogOut, HeartPulse, Wind, Settings as SettingsIcon
 } from 'lucide-react';
 
 function Navbar({ setToken }) {
@@ -45,16 +38,7 @@ function Navbar({ setToken }) {
     >
       <div className="nav-brand">
         <HeartPulse size={40} color="#FF0505" />
-        <span
-          style={{
-            fontWeight: 'bold',
-            fontSize: '1.6rem',
-            color: 'white',
-            marginLeft: '12px'
-          }}
-        >
-          {t('appTitle')}
-        </span>
+        <span style={{ fontWeight: 'bold', fontSize: '1.6rem', color: 'white', marginLeft: '12px' }}>{t('appTitle')}</span>
       </div>
 
       <div className="nav-links">

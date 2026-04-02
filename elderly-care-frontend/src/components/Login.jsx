@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Lock, HeartPulse, ScanFace, Volume2, VolumeX } from 'lucide-react';
+import { User, Lock, HeartPulse, ScanFace } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useFaceApi } from '../hooks/useFaceApi';
 
@@ -9,7 +9,6 @@ function Login({ setToken }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [hoverToSpeak, setHoverToSpeak] = useState(localStorage.getItem('hoverToSpeak') !== 'false');
   
   // Face Recognition State
   const { isLoaded, getFaceDescriptor } = useFaceApi();
